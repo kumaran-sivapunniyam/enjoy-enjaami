@@ -5,7 +5,7 @@ import java.util.List;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
- class CollectListFlatMapApp {
+ class CollectListFlatMapDemo {
 
 	 static void main(String[] args) {
 		
