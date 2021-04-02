@@ -1,5 +1,6 @@
 package com.kani.reactor.rsb;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import lombok.var;
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
+import reactor.util.retry.Retry;
 
 @Log4j2
 public class ControlFlowRetryTest {
@@ -32,7 +34,58 @@ public class ControlFlowRetryTest {
 		StepVerifier.create(retryOnError).expectNext("hello").verifyComplete();
 	}
 	/*
-	 * try retryBackoff, repeatWhenEmpty, defaultIfEmpty
+	 * try retry(numRetries) retryBackoff, repeatWhenEmpty, defaultIfEmpty
 	 */
-	
+
+	@Test
+	public void retryBackoff() {
+
+		var errored = new AtomicBoolean();
+		Flux<String> producer = Flux.create(sink -> {
+			if (!errored.get()) {
+				// errored.set(true);
+				sink.error(new RuntimeException("Nope!"));
+				log.info("returning a " + RuntimeException.class.getName() + "!");
+			} else {
+				log.info("we've already errored so here's the value");
+				sink.next("hello1");
+				sink.next("hello2");
+				sink.next("hello3");
+				sink.next("hello4");
+			}
+			sink.complete();
+		});
+
+		Flux<String> retryOnError = producer //
+				.retryWhen(Retry.backoff(3, Duration.ofMillis(500))) //
+				.doOnError(log::info);
+
+		StepVerifier.create(retryOnError).verifyError();
+	}
+
+	@Test
+	public void doBeforeRetry() {
+
+		var errored = new AtomicBoolean();
+		Flux<String> producer = Flux.create(sink -> {
+			if (!errored.get()) {
+				// errored.set(true);
+				sink.error(new RuntimeException("Nope!"));
+				// log.info("returning a " + RuntimeException.class.getName() + "!");
+			} else {
+				log.info("we've already errored so here's the value");
+				sink.next("hello1");
+				sink.next("hello2");
+				sink.next("hello3");
+				sink.next("hello4");
+			}
+			sink.complete();
+		});
+
+		Flux<String> retryOnError = producer //
+				.retryWhen(Retry.backoff(3, Duration.ofMillis(500)) //
+						.doBeforeRetry(log::info));
+
+		StepVerifier.create(retryOnError).verifyError();
+	}
 }
