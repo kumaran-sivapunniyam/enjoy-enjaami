@@ -1,31 +1,33 @@
 package com.kani.reactor.onerrorcontinue;
 
+import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
+@Log4j2
 class OnErrorConinueDemo {
 
 	public static void main(String[] args) {
 
-		Flux.just("Minneapolis3", "Minneapolis2", "Minneapolis").doOnNext(System.out::println)
-				.concatMap(departmentId -> EmployeeRepository.findEmployeeByDepartmenId(departmentId))
-				.onErrorContinue((t, departmentId) -> System.out.println(String.format("%s", t.getMessage())))
-				.switchIfEmpty(Flux.just(buildEmployee())).doOnNext(employee -> System.out.println(employee.toString()))
-				.concatMap(employee -> AddressRepository.findAddressByEmployeeId(employee.getId()))
-				.switchIfEmpty(Mono.just(buildAddress()))
-				.onErrorContinue((t, employee) -> System.out.println(String.format("%s", t.getMessage())))
-				.doOnNext(address -> System.out.println(address.toString())).subscribe();
+		Flux.just("Kumaran", "Pratheepa", "Kavin", "Nila", "Karthi", "Revathi") //
 
-	}
+				.flatMap(name -> {
 
-	private static Address buildAddress() {
+					if (name.equalsIgnoreCase("Pratheepa")) {
+						return Flux.error(new PratheepaException());
+					} else if (name.equalsIgnoreCase("Nila")) {
+						return Flux.error(new NilaException());
+					}
 
-		return Address.builder().city("Chennai").state("TN").build();
-	}
+					return Flux.just(name);
+				}).onErrorContinue(PratheepaException.class, //
+						(t, name) -> log.info("{} - {}", name, t.getClass().getName()))
 
-	private static Employee buildEmployee() {
+				.onErrorContinue(NilaException.class, //
+						(t, name) -> log.info("{} - {}", name, t.getClass().getName()))
+				
+				.doOnNext(log::info) //
+				.subscribe();
 
-		return Employee.builder().id("X1").name("XXX").build();
 	}
 
 }
