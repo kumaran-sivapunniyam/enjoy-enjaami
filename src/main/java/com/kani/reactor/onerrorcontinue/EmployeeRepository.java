@@ -15,8 +15,10 @@ class EmployeeRepository {
 			Employee e1 = new Employee("CE1", "Kumaran");
 			Employee e2 = new Employee("CE2", "Pratheepa");
 			return Flux.just(e1, e2);
+		} else if(departmentId.contains("@")) {
+			return Flux.error(new RepositoryException("UnacceptableCharFound"));
 		}
-		return Flux.error(new RuntimeException("NoEmployeeFound for department:" + departmentId));
+		return Flux.error(new NoEmployeeFoundException("NoEmployeeFound"));
 		
 	}
 
