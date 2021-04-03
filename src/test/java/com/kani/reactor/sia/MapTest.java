@@ -3,25 +3,17 @@ package com.kani.reactor.sia;
 import org.junit.jupiter.api.Test;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
-public class FlatmapTest {
+public class MapTest {
 
-	public static int ARRAY_SIZE = 10000;
+	public static int ARRAY_SIZE = 10;
 
 	@Test
-	public void flatMap() {
+	public void map() {
 		Flux<Player> playerFlux = Flux.fromArray(getFullNames()) //
-				.flatMap(fullName -> Mono.just(fullName) //
-						.map(fn -> buildPlayer(fn)) //
-						.subscribeOn(Schedulers.parallel()) //
-				// .subscribeOn(Schedulers.single()) //
-				// .subscribeOn(Schedulers.immediate()) //
-				// .subscribeOn(Schedulers.newSingle("KK")) //
-				// .subscribeOn(Schedulers.elastic()) //
-				).log();
+				.map(fullName -> buildPlayer(fullName))//
+				.log();
 
 		testPlayerFlux(playerFlux);
 
@@ -40,7 +32,8 @@ public class FlatmapTest {
 	private void testPlayerFlux(Flux<Player> playerFlux) {
 		// List<Player> playerList = getFullNamesList();
 		StepVerifier.create(playerFlux)//
-				.expectNextCount(ARRAY_SIZE).verifyComplete();
+				.expectNextCount(ARRAY_SIZE)
+				.verifyComplete();
 	}
 
 	private Player buildPlayer(String fullName) {
@@ -48,5 +41,6 @@ public class FlatmapTest {
 		return new Player(split[0], split[1]);
 
 	}
+
 
 }
