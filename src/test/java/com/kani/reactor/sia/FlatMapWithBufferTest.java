@@ -3,18 +3,18 @@ package com.kani.reactor.sia;
 import org.junit.jupiter.api.Test;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
-public class FlatmapTest {
+public class FlatMapWithBufferTest {
 
-	public static int ARRAY_SIZE = 4;
+	public static int ARRAY_SIZE = 9;
 
 	@Test
-	public void flatMap() {
+	public void flatMapWithBuffer() {
 		Flux<Player> playerFlux = Flux.fromArray(getFullNames()) //
-				.flatMap(fullName -> Mono.just(fullName) //
+				.buffer(3)
+				.flatMap(tenFullNamesList -> Flux.fromIterable(tenFullNamesList) //
 						.map(fn -> buildPlayer(fn)) //
 						.subscribeOn(Schedulers.parallel()) //
 						.log()
