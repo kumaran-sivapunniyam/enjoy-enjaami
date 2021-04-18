@@ -41,7 +41,8 @@ public class TransformDeferredDemo {
 				Arrays.asList("Kavin Kumaran", "Nila Kumaran", "Vignesh Karthi", "Shankar Karthi", "Elle Vignesh"))
 				//.doOnNext(log::info)
 				.transformDeferred(filterAndMap);
-				
+				//.transform(filterAndMap);
+		
 		
 		
 		familyFlux.subscribe(name -> log.info("Subscriber Karthi to Composed MapAndFilter: {}",  name));
