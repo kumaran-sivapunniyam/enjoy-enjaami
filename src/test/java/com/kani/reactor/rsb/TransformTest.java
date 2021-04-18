@@ -1,33 +1,50 @@
 package com.kani.reactor.rsb;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 public class TransformTest {
 
-	/*
-	 * The transform operator gives us a chance to act on a Flux<T>, customizing it.
-	 * This can be quite useful if you want to avoid extra intermediate variables.
-	 */
+	FamilyFluxBuilder familyFluxBuilder = Mockito.mock(FamilyFluxBuilder.class);
+
+//	@Mock
+//	FamilyFluxBuilder familyFluxBuilder;
+
+	public Flux<String> buildFamilyFlux() {
+
+		Flux<String> familyFlux = Flux
+				.fromIterable(Arrays.asList("Kavin Kumaran", "Nila Kumaran", "Vignesh Karthi", "Shankar Karthi",
+						"Elle Vignesh"))
+
+				.transformDeferred(incomingFlux -> familyFluxBuilder.buildTransformedFlux(incomingFlux));
+
+		return familyFlux;
+
+	}
 
 	@Test
-	public void transform() {
+	public void testTransformDeferred() {
 
-		AtomicBoolean finished = new AtomicBoolean();
+		when(familyFluxBuilder.buildTransformedFlux(Mockito.any()))
+				.thenReturn(Flux.just("Vignesh1 Karthi".toUpperCase(), "Shankar1 Karthi".toUpperCase()));
 
-		Flux<String> lettersFlux = Flux.just("A", "B", "C")
-				.transform(stringFlux -> stringFlux.doFinally(signal -> finished.set(true)));
+		Flux<String> familyFlux = buildFamilyFlux();
 
-		StepVerifier.create(lettersFlux) //
-				.expectNextCount(3) //
+		StepVerifier.create(familyFlux) //
+				.expectNext("Vignesh1 Karthi".toUpperCase()) //
+				.expectNext("Shankar1 Karthi".toUpperCase()) //
 				.verifyComplete();
 
-		Assertions.assertTrue(finished.get());
+//		StepVerifier.create(familyFlux).expectNext("Kavin Kumaran".toUpperCase())
+//				.expectNext("Nila Kumaran".toUpperCase()).verifyComplete();
 
 	}
 }
